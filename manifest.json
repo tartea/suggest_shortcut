@@ -1,0 +1,12 @@
+{
+	"id": "suggest_shortcut",
+	"name": "suggest shortcut",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "这个插件提供了和notion相同的快捷方式，在输入\"/\"的时候会提示",
+	"author": "ali",
+	"authorUrl": "https://obsidian.md",
+	"fundingUrl": "https://obsidian.md/pricing",
+	"isDesktopOnly": false,
+	"css": "styles.css"
+}

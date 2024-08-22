@@ -1,0 +1,36 @@
+/*
+
+This CSS file will be included with your plugin, and
+available in the app when your plugin is enabled.
+
+If your plugin does not need CSS, delete this file.
+
+*/
+/* styles.css */
+.notion_setting .setting-item:first-child {
+  border-top: none;
+  padding-bottom: 0;
+  padding-top: 0;
+}
+
+.notion_setting .setting-item {
+  border-top: none;
+}
+
+.notion_setting .notion_input_row {
+  display: flex;
+  gap: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.notion_suggest_row {
+  display: flex;
+  min-width: 200px;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notion_suggest_row .notion_search_el {
+  color: rgb(135, 135, 135);
+}
