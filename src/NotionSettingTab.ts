@@ -1,6 +1,6 @@
 import NotionPlugin from 'main';
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
-import { SettingConfig } from './NotionPluginSettings';
+import { CommandType, SettingConfig } from './NotionPluginSetting';
 
 
 
@@ -20,6 +20,18 @@ class NotionSettingTab extends PluginSettingTab {
     containerEl.empty();
     containerEl.addClass("notion_setting")
 
+    // 渲染快捷命令
+    this.renderingShortcut(containerEl)
+
+    // 渲染自定义命令
+    this.renderingCommand(containerEl)
+  }
+
+  /**
+   * 渲染快捷命令
+   * @param containerEl 
+   */
+  renderingShortcut(containerEl: HTMLElement): void {
     // 添加设置文本框
     new Setting(containerEl)
       .setName('Shortcut keys')
@@ -37,7 +49,7 @@ class NotionSettingTab extends PluginSettingTab {
 
     if (this.plugin.setting && this.plugin.setting.shortcutKeys.length > 0) {
       this.plugin.setting.shortcutKeys.forEach(item => {
-        this.addDynamicInput(dynamicInputContainer, item);
+        this.addDynamicInput(dynamicInputContainer, CommandType.SHORTCUT, item);
       })
     }
 
@@ -46,13 +58,49 @@ class NotionSettingTab extends PluginSettingTab {
       .addButton(button => {
         button.setButtonText('Add Shortcut Key')
           .onClick(() => {
-            this.addDynamicInput(dynamicInputContainer);
+            this.addDynamicInput(dynamicInputContainer, CommandType.SHORTCUT);
+          });
+      });
+  }
+
+  /**
+  * 渲染快捷命令
+  * @param containerEl 
+  */
+  renderingCommand(containerEl: HTMLElement): void {
+    // 添加设置文本框
+    new Setting(containerEl)
+      .setName('Command keys')
+      .setDesc('You can input the md command as a command');
+
+    // 添加下划线
+    const separator = containerEl.createDiv();
+    separator.setCssStyles({
+      borderBottom: '1px solid #ccc',
+      margin: '10px 0', // 添加上下边距
+    });
+
+    // 添加动态生成的输入框区域
+    const dynamicInputContainer = containerEl.createDiv();
+
+    if (this.plugin.setting && this.plugin.setting.customCommands.length > 0) {
+      this.plugin.setting.customCommands.forEach(item => {
+        this.addDynamicInput(dynamicInputContainer, CommandType.HTML, item);
+      })
+    }
+
+    // 添加按钮
+    new Setting(containerEl)
+      .addButton(button => {
+        button.setButtonText('Add Command Key')
+          .onClick(() => {
+            this.addDynamicInput(dynamicInputContainer, CommandType.HTML);
           });
       });
   }
 
   // 动态添加输入框的方法
-  addDynamicInput(container: HTMLElement, config?: SettingConfig): void {
+  addDynamicInput(container: HTMLElement, commandType: CommandType, config?: SettingConfig): void {
 
     // 创建一个新的 div，用于承载三个输入框
     const inputRow = container.createDiv();
@@ -69,58 +117,47 @@ class NotionSettingTab extends PluginSettingTab {
         title: '',
         search: '',
         command: '',
-        insertCode: 'insertCode'
+        type: commandType
       }
-
-      // 创建三个输入框
-      new Setting(inputRow)
-        .addText(text => text
-          .setPlaceholder(`名称`)
-          .onChange(async (value) => {
-
-            config!.title = value;
-          }));
-      new Setting(inputRow)
-        .addText(text => text
-          .setPlaceholder(`关键字`)
-          .onChange(async (value) => {
-            config!.search = value;
-
-          }));
-      new Setting(inputRow)
-        .addText(text => text
-          .setPlaceholder(`指令`)
-          .onChange(async (value) => {
-            config!.command = value;
-          }));
-    } else {
-
-      // 创建三个输入框
-      new Setting(inputRow)
-        .addText(text => text
-          .setValue(`${config!.title}`)
-          .onChange(async (value) => {
-            config!.title = value;
-          }));
-      new Setting(inputRow)
-        .addText(text => text
-          .setValue(`${config!.search}`)
-          .onChange(async (value) => {
-            config!.search = value;
-          }));
-      new Setting(inputRow)
-        .addText(text => text
-          .setValue(`${config!.command}`)
-          .onChange(async (value) => {
-            config!.command = value;
-          }));
     }
+    // 渲染每一行
+    this.renderingSettingRow(inputRow, config)
+
+  }
+
+  renderingSettingRow(inputRow: HTMLElement, config: SettingConfig) {
+    // 创建三个输入框
+    new Setting(inputRow)
+      .addText(text => text
+        .setPlaceholder(`名称`)
+        .setValue(`${config.title}`)
+        .onChange(async (value) => {
+          config.title = value;
+          this.plugin.saveSetting(config)
+        }));
+    new Setting(inputRow)
+      .addText(text => text
+        .setPlaceholder(`指令`)
+        .setValue(`${config.search}`)
+        .onChange(async (value) => {
+          config.search = value;
+          this.plugin.saveSetting(config)
+        }));
+    new Setting(inputRow)
+      .addText(text => text
+        .setPlaceholder(`命令`)
+        .setValue(`${config.command}`)
+        .onChange(async (value) => {
+          config.command = value;
+          this.plugin.saveSetting(config)
+        }));
 
     new Setting(inputRow)
       .addButton(button => {
-        button.setButtonText('Save')
+        button.setIcon("delete")
           .onClick(() => {
-            this.plugin.saveSettings(config!);
+            this.plugin.deleteSetting(config)
+            this.display()
           });
       });
   }

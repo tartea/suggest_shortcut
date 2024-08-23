@@ -1,6 +1,6 @@
 import NotionPlugin from 'main';
 import { App, Editor, EditorPosition, EditorSuggest, EditorSuggestContext, EditorSuggestTriggerInfo, TFile, Plugin } from 'obsidian';
-import { NotionPluginSettings, SettingConfig } from './NotionPluginSettings';
+import { CommandType, NotionPluginSetting, SettingConfig } from './NotionPluginSetting';
 
 export default class MentionSuggest extends EditorSuggest<SettingConfig> {
 
@@ -8,12 +8,21 @@ export default class MentionSuggest extends EditorSuggest<SettingConfig> {
   editor: Editor | undefined
   editorSuggest: EditorSuggestTriggerInfo | undefined
 
-  setting: NotionPluginSettings;
 
-  constructor(app: App, shortcutKeys: SettingConfig[]) {
+  constructor(app: App, pluginSetting: NotionPluginSetting) {
     super(app);
-    this.customSuggestions = shortcutKeys; // 您的建议列表
-    this.limit = this.customSuggestions.length; // 设置建议项的限制
+    this.updateSuggestions(pluginSetting)
+    // 设置建议项的限制
+    this.limit = 20;
+
+    removeEventListener("Loading-NewCommand", () => {
+      console.log('remove command')
+    });
+  }
+
+  // 更新项的方法
+  updateSuggestions(pluginSetting: NotionPluginSetting) {
+    this.customSuggestions = [...pluginSetting.shortcutKeys, ...pluginSetting.customCommands];
   }
 
   /**
@@ -24,7 +33,6 @@ export default class MentionSuggest extends EditorSuggest<SettingConfig> {
    * @returns 如果触发建议，返回相关信息，否则返回 null
    */
   onTrigger(cursor: EditorPosition, editor: Editor, file: TFile | null): EditorSuggestTriggerInfo | null {
-
 
     // 判断第一个元素是不是 / 符号
     const line = editor.getLine(cursor.line);
@@ -69,8 +77,13 @@ export default class MentionSuggest extends EditorSuggest<SettingConfig> {
   }
   selectSuggestion(value: SettingConfig, event: MouseEvent | KeyboardEvent): void {
     if (this.editor && this.editorSuggest) {
-      this.editor.replaceRange("", this.editorSuggest.start, this.editorSuggest.end)
-      this.app.commands.executeCommandById(value.command);
+
+      if (CommandType.HTML === value.type) {
+        this.editor.replaceRange(value.command, this.editorSuggest.start, this.editorSuggest.end)
+      } else if (CommandType.SHORTCUT === value.type) {
+        this.editor.replaceRange("", this.editorSuggest.start, this.editorSuggest.end)
+        this.app.commands.executeCommandById(value.command);
+      }
     }
   }
 }
