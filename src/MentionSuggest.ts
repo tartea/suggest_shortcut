@@ -39,7 +39,7 @@ export default class MentionSuggest extends EditorSuggest<SettingConfig> {
     const charBeforeCursor = line[0];
     this.editor = editor
     // 检查光标前一字符是否为 '@'
-    if (charBeforeCursor === '/') {
+    if (charBeforeCursor === '/' || charBeforeCursor === '、') {
       // 返回触发信息，包含光标位置和查询内容
       this.editorSuggest = {
         start: { line: cursor.line, ch: 0 },

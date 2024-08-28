@@ -144,7 +144,7 @@ class NotionSettingTab extends PluginSettingTab {
           this.plugin.saveSetting(config)
         }));
     new Setting(inputRow)
-      .addText(text => text
+      .addTextArea(text => text
         .setPlaceholder(`命令`)
         .setValue(`${config.command}`)
         .onChange(async (value) => {
