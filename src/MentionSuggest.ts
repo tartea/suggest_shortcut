@@ -77,9 +77,33 @@ export default class MentionSuggest extends EditorSuggest<SettingConfig> {
   }
   selectSuggestion(value: SettingConfig, event: MouseEvent | KeyboardEvent): void {
     if (this.editor && this.editorSuggest) {
+      const start = this.editorSuggest.start;
 
       if (CommandType.HTML === value.type) {
-        this.editor.replaceRange(value.command, this.editorSuggest.start, this.editorSuggest.end)
+        const multilineText = value.command
+
+        // 计算新的光标位置
+        this.editor.replaceRange(multilineText.replace(/\$1/g, ''), start, this.editorSuggest.end)
+
+        // 计算新的光标位置
+        const lines = multilineText.split('\n');
+        let newLine = start.line; // 新行位置
+        let newCh = 0; // 新列位置
+        let found = false;
+
+        // 查找 '$1' 的位置
+        for (let i = 0; i < lines.length; i++) {
+          if (lines[i].includes('$1')) {
+            newLine = this.editorSuggest.start.line + i; // 更新新行位置
+            newCh = lines[i].indexOf('$1'); // 找到 '$1' 的列位置
+            found = true;
+            break;
+          }
+        }
+        // 如果找到了 '$1'，将光标移动到 '$1' 位置
+        if (found) {
+          this.editor.setCursor({ line: newLine, ch: newCh });
+        }
       } else if (CommandType.SHORTCUT === value.type) {
         this.editor.replaceRange("", this.editorSuggest.start, this.editorSuggest.end)
         this.app.commands.executeCommandById(value.command);
